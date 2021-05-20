@@ -1,6 +1,6 @@
 package it.polito.tdp.PremierLeague.model;
 
-public class Player {
+public class Player{
 	Integer playerID;
 	String name;
 	

@@ -7,6 +7,7 @@ package it.polito.tdp.PremierLeague;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.PremierLeague.model.Adiacenza;
 import it.polito.tdp.PremierLeague.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -44,7 +45,31 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	
+    	txtResult.clear();
+    	String goalS = txtGoals.getText();
+    	double goal;
+    	
+    	if (goalS == null) {
+			txtResult.setText("Inserire un valore");
+		}
+    	
+    	try {
+    		goal = Double.parseDouble(goalS);
+    		
+    			
+    	}catch(NumberFormatException e) {
+    		txtResult.setText("Il valore inserito deve essere un numero");
+    		return; 
+    	}
+    	
+    	// richiamo grafo
+    	this.model.creaGrafo(goal);
+    	txtResult.appendText("GRAFO CREATO!"+"\n");
+    	txtResult.appendText("# VERTICI: "+this.model.getNumVertici()+"\n");
+    	txtResult.appendText("# ARCHI: "+this.model.getNumArchi()+"\n");
 
+    	btnTopPlayer.setDisable(false);
     }
 
     @FXML
@@ -54,7 +79,20 @@ public class FXMLController {
 
     @FXML
     void doTopPlayer(ActionEvent event) {
-
+    	
+    	txtResult.clear();
+    	String goalS = txtGoals.getText();
+    	double goal = Double.parseDouble(goalS);
+    	
+    // SE HO POTUTO PREMERE IL BOTTONE TOP-PLAYER E' PERCHE' LA CREAZIONE
+    // DEL GRAFO E' ANDATA A BUON FINE (QUINDI IL PARAMETRO INSERITO E' CORRETTO)
+    	// richiamo grafo
+    	this.model.creaGrafo(goal);
+    	txtResult.appendText("IL TOP-PLAYER E+: "+this.model.getTopPlayer(goal));
+    	txtResult.appendText("Gli avversari battuti (con peso decrescente) sono: "
+    			+this.model.getAvversariTopPlayer(goal)+"\n");
+    	
+    	
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
