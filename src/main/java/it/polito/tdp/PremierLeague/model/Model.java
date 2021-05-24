@@ -3,10 +3,12 @@ package it.polito.tdp.PremierLeague.model;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultWeightedEdge;
@@ -22,6 +24,7 @@ public class Model {
 	
 	
 	private List<Player> percorsoMigliore;
+	private int gradoMigliore; // lo dichiaro qui per fae il GETTER
 	
 	public Model() {
 		dao = new PremierLeagueDAO();
@@ -87,70 +90,107 @@ public class Model {
 		}
 		
 		// METODO PER PRENDERE LA LISTA DEGLI AVVERSARI DEL TOP-PLAYER
-		public Set<Adiacenza> getAvversariTopPlayer(double x){
+		public Set<DefaultWeightedEdge> getAvversariTopPlayer(double x){
 			Player top = this.getTopPlayer(x);
-			Set<Adiacenza> lista = new HashSet<>();
-			lista.add( (Adiacenza) grafo.outgoingEdgesOf(top));
-			return lista;
+			Set<DefaultWeightedEdge> avversari = this.grafo.outgoingEdgesOf(top);
+			
+			return avversari;
 		}
+		
+		/**
+		 * METODO PER RESTITUIRE AVVERSARI IN ORDINE DI PESO DECRESCENTE
+		 */
 	
-		/*
+		public LinkedHashMap <Double, Player> getSconfittiMappa(Player p) {
+			
+			//in ordine di peso decrescente per chiave
+						//peso DELTA, sconfitto 
+			LinkedHashMap <Double, Player> sconfitti = new LinkedHashMap <Double, Player>();
+			TreeMap<Double, Player> sconfittiCresc = new TreeMap <Double, Player>();
+			
+			for(DefaultWeightedEdge e: this.grafo.outgoingEdgesOf(p)) {
+				sconfittiCresc.put(this.grafo.getEdgeWeight(e), this.grafo.getEdgeTarget(e));
+			}
+				
+			// ora ho la mappa in ordine crescente
+			
+			
+			return sconfitti;
+		}
+		
 	// METODO PER ALGORITMO RICORSIVO (VISITA)
 		public List<Player> trovaPercorso(int k){
 			this.percorsoMigliore = new ArrayList<>();
 			List<Player> parziale = new ArrayList<>();
 			
-			cerca( k, parziale);
+			cerca(parziale, new ArrayList<Player>( this.grafo.vertexSet()), k);
 			return this.percorsoMigliore;
 		}
 
-	private void cerca( int k, List<Player> parziale) {
-		double gradoE = 0;
-		double gradoU = 0;
-		double grado = 0;
-		double max = 0;
+	private void cerca(List<Player> parziale, ArrayList<Player> giocatori, int k) {
 		
 		if ( parziale.size() == k ) {
-			
-			if (max > grado) {
+			int grado = this.getGrado(parziale);
+			if(grado > gradoMigliore) {
 				this.percorsoMigliore = new LinkedList<>(parziale);
+				gradoMigliore = grado;
 			}
+				
+			
 		}
 		
 		// per ogni giocatore calcolo il suo grado di titolarità
 		
-		for(Player p: this.grafo.vertexSet()) {
-			for (Adiacenza a: this.getAdiacenza()) {
-				if(a.getP1().equals(p) || a.getP2().equals(p)) {
-			
-					// conto pesi USCENTI
-					for (DefaultWeightedEdge arcoU: this.grafo.outgoingEdgesOf(p)) {
-					
-						gradoU = gradoU + a.getPeso();
-				
-					}
-					// conto pesi ENTRANTI
-					for (DefaultWeightedEdge arcoE: this.grafo.outgoingEdgesOf(p)) {
-						
-						gradoE = gradoE + a.getPeso();
-					
-					}
-					
-					// calcolo titolarià 
-					grado = gradoU - gradoE;
-					
-					
-				}
-			}
-			if (! parziale.contains(p)) {
+		for(Player p: giocatori) {
+			if (!parziale.contains(p)) {
+				// aggiungo il giocatore
 				parziale.add(p);
-				cerca(k,parziale);
-				parziale.remove(parziale.size()-1);
+				// creo la lista di giocatori che possono entrare
+				// prima la riempio con tutti i giocatori passati nella lista da parametro
+				ArrayList<Player> giocatoriRimanenti = new ArrayList<>(giocatori);
+				// poi rimuovo i successori di questo vertice (cioè gli avversari battuti)
+				giocatoriRimanenti.removeAll(Graphs.successorListOf(grafo, p));
+				// ATTENZIONE!! -- GRAPHS E' LA CLASSE CHE DISPONE DEI METODI
 				
+				cerca(parziale, giocatoriRimanenti, k);
+				parziale.remove(p);
 			}
 		}
-	
 	}
+		
 
-	*/	
+	
+
+	private int getGrado(List<Player> team) {
+		int gradoE = 0;
+		int gradoU = 0;
+		int grado = 0;
+		
+		
+		for (Player p: team) {
+				// conto pesi USCENTI
+				for (DefaultWeightedEdge arcoU: this.grafo.outgoingEdgesOf(p)) {
+						
+					gradoU += this.grafo.getEdgeWeight(arcoU);
+					
+				}
+				// conto pesi ENTRANTI
+				for (DefaultWeightedEdge arcoE: this.grafo.incomingEdgesOf(p)) {
+							
+					gradoE += this.grafo.getEdgeWeight(arcoE);
+						
+				}
+						
+				// calcolo titolarià 
+				grado = gradoU - gradoE;
+			
+			}
+			
+		return grado;
+	}
+	
+	public int getGradoMigliore() {
+		return gradoMigliore;
+	}
+		
 }

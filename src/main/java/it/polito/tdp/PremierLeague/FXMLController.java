@@ -5,10 +5,12 @@
 package it.polito.tdp.PremierLeague;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import it.polito.tdp.PremierLeague.model.Adiacenza;
 import it.polito.tdp.PremierLeague.model.Model;
+import it.polito.tdp.PremierLeague.model.Player;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -75,12 +77,29 @@ public class FXMLController {
     @FXML
     void doDreamTeam(ActionEvent event) {
 
+    	
+    	String kS = txtK.getText();
+    	int k;
+    	
+    	try {
+    		k=Integer.parseInt(kS);
+    	}catch(NumberFormatException ne){
+    		txtResult.appendText("Errore: inserire un numero!");
+    		return; 
+    	}
+    	
+    	this.doCreaGrafo(event);
+    	
+    	List<Player> dreamTeam= this.model.trovaPercorso(k);
+    	txtResult.appendText("IL DREAM TEAM E' COMPOSTO DA: "+"\n");
+    	txtResult.appendText(dreamTeam+"\n");
+    	txtResult.appendText("IL GRADO DI TITOLARITA' E': "+this.model.getGradoMigliore());
     }
 
     @FXML
     void doTopPlayer(ActionEvent event) {
     	
-    	txtResult.clear();
+    	
     	String goalS = txtGoals.getText();
     	double goal = Double.parseDouble(goalS);
     	
@@ -88,9 +107,9 @@ public class FXMLController {
     // DEL GRAFO E' ANDATA A BUON FINE (QUINDI IL PARAMETRO INSERITO E' CORRETTO)
     	// richiamo grafo
     	this.model.creaGrafo(goal);
-    	txtResult.appendText("IL TOP-PLAYER E+: "+this.model.getTopPlayer(goal));
+    	txtResult.appendText("IL TOP-PLAYER E': "+this.model.getTopPlayer(goal)+"\n");
     	txtResult.appendText("Gli avversari battuti (con peso decrescente) sono: "
-    			+this.model.getAvversariTopPlayer(goal)+"\n");
+    			+this.model.getAvversariTopPlayer(goal).toString()+"\n");
     	
     	
     }
